@@ -117,6 +117,7 @@ int test_fmt_pl(void);
 int test_fmt_pl_u32(void);
 int test_fmt_pl_u64(void);
 int test_fmt_pl_x3264(void);
+int test_fmt_pl_float(void);
 int test_fmt_print(void);
 int test_fmt_regex(void);
 int test_fmt_snprintf(void);
@@ -138,6 +139,7 @@ int test_list_ref(void);
 int test_mbuf(void);
 int test_md5(void);
 int test_mem(void);
+int test_mem_reallocarray(void);
 int test_mqueue(void);
 int test_natbd(void);
 int test_remain(void);
@@ -278,3 +280,39 @@ struct turnserver {
 };
 
 int turnserver_alloc(struct turnserver **turnp);
+
+
+/**
+ * A simple NAT-box that can be hooked onto a UDP-socket.
+ *
+ * The NAT behaviour is port-preserving and will rewrite the source
+ * IP-address to the public address.
+ */
+struct nat {
+	struct sa public_addr;
+	struct udp_helper *uh;
+	struct udp_sock *us;
+	struct sa bindingv[16];
+	size_t bindingc;
+};
+
+int nat_alloc(struct nat **natp, struct udp_sock *us,
+	      const struct sa *public_addr);
+
+
+/*
+ * TCP Server
+ */
+
+enum behavior {
+	BEHAVIOR_NORMAL,
+	BEHAVIOR_REJECT
+};
+
+struct tcp_server {
+	struct tcp_sock *ts;
+	enum behavior behavior;
+	struct sa laddr;
+};
+
+int tcp_server_alloc(struct tcp_server **srvp, enum behavior behavior);
