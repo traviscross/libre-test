@@ -5,7 +5,7 @@
 #
 
 PROJECT	  := retest
-VERSION   := 0.4.2
+VERSION   := 0.4.3
 
 LIBRE_MK  := $(shell [ -f ../re/mk/re.mk ] && \
 	echo "../re/mk/re.mk")
@@ -31,6 +31,15 @@ endif
 BINDIR	:= $(PREFIX)/bin
 CFLAGS	+= -Isrc -I$(LIBRE_INC)
 CFLAGS  += -I$(LIBREM_PATH)/include -I$(SYSROOT)/local/include/rem
+CXXFLAGS	+= -Isrc -I$(LIBRE_INC)
+CXXFLAGS  += -I$(LIBREM_PATH)/include -I$(SYSROOT)/local/include/rem
+
+# XXX: common for C/C++
+CPPFLAGS += -DHAVE_INTTYPES_H
+
+CPPFLAGS += -I$(SYSROOT)/include
+
+
 BIN	:= $(PROJECT)$(BIN_SUFFIX)
 
 SPLINT_OPTIONS += -Isrc
@@ -47,7 +56,8 @@ LIBS	+= -lrem -lm
 
 include src/srcs.mk
 
-OBJS	:= $(patsubst %.c,$(BUILD)/src/%.o,$(SRCS))
+OBJS      := $(patsubst %.c,$(BUILD)/src/%.o,$(filter %.c,$(SRCS)))
+OBJS      += $(patsubst %.cpp,$(BUILD)/src/%.o,$(filter %.cpp,$(SRCS)))
 
 all: $(BIN)
 
@@ -59,12 +69,16 @@ $(BIN): $(OBJS)
 ifneq ($(GPROF),)
 	@$(LD) $(LFLAGS) $^ ../re/libre.a $(LIBS) -o $@
 else
-	@$(LD) $(LFLAGS) $^ -L$(LIBRE_SO) -lre $(LIBS) -o $@
+	@$(CXX) $(LFLAGS) $^ -L$(LIBRE_SO) -lre $(LIBS) -o $@
 endif
 
 $(BUILD)/%.o: %.c $(BUILD) Makefile src/srcs.mk
 	@echo "  CC      $@"
 	@$(CC) $(CFLAGS) -o $@ -c $< $(DFLAGS)
+
+$(BUILD)/%.o: %.cpp $(BUILD) Makefile src/srcs.mk
+	@echo "  CXX     $@"
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $< $(DFLAGS)
 
 $(BUILD): Makefile
 	@mkdir -p $(BUILD)/src/mock

@@ -21,6 +21,7 @@ SRCS	+= http.c
 SRCS	+= httpauth.c
 SRCS	+= ice.c
 SRCS	+= jbuf.c
+SRCS	+= json.c
 SRCS	+= list.c
 SRCS	+= main.c
 SRCS	+= mbuf.c
@@ -28,12 +29,15 @@ SRCS	+= md5.c
 SRCS	+= mem.c
 SRCS	+= mqueue.c
 SRCS	+= natbd.c
+SRCS	+= odict.c
 SRCS	+= remain.c
 SRCS	+= rtp.c
 SRCS	+= sa.c
 SRCS	+= sdp.c
 SRCS	+= sha.c
 SRCS	+= sip.c
+SRCS	+= sipevent.c
+SRCS	+= sipreg.c
 SRCS	+= sipsess.c
 SRCS	+= srtp.c
 SRCS	+= stun.c
@@ -57,8 +61,13 @@ SRCS	+= combo/dtls_turn.c
 SRCS	+= cert.c
 endif
 
+SRCS	+= cplusplus.cpp
+
+SRCS	+= util.c
+
 # Mock servers
 SRCS	+= mock/pf.c
+SRCS	+= mock/sipsrv.c
 SRCS	+= mock/stunsrv.c
 SRCS	+= mock/turnsrv.c
 SRCS	+= mock/nat.c

@@ -5,6 +5,12 @@
  */
 
 
+/*
+ * Special negative error code for a skipped test
+ */
+#define ESKIPPED (-1000)
+
+
 #define TEST_EQUALS(expected, actual)				\
 	if ((expected) != (actual)) {				\
 		(void)re_fprintf(stderr, "\n");			\
@@ -123,6 +129,7 @@ int test_fmt_regex(void);
 int test_fmt_snprintf(void);
 int test_fmt_str(void);
 int test_fmt_str_error(void);
+int test_fmt_unicode(void);
 int test_g711_alaw(void);
 int test_g711_ulaw(void);
 int test_hash(void);
@@ -134,6 +141,11 @@ int test_httpauth_resp(void);
 int test_ice(void);
 int test_ice_lite(void);
 int test_jbuf(void);
+int test_json(void);
+int test_json_bad(void);
+int test_json_file(void);
+int test_json_unicode(void);
+int test_json_array(void);
 int test_list(void);
 int test_list_ref(void);
 int test_mbuf(void);
@@ -142,6 +154,8 @@ int test_mem(void);
 int test_mem_reallocarray(void);
 int test_mqueue(void);
 int test_natbd(void);
+int test_odict(void);
+int test_odict_array(void);
 int test_remain(void);
 int test_rtp(void);
 int test_rtcp_encode(void);
@@ -164,6 +178,8 @@ int test_sip_msg(void);
 int test_sip_param(void);
 int test_sip_parse(void);
 int test_sip_via(void);
+int test_sipevent(void);
+int test_sipreg(void);
 int test_sipsess(void);
 int test_srtp(void);
 int test_stun_req(void);
@@ -190,6 +206,7 @@ int test_vidconv(void);
 int test_websock(void);
 #ifdef USE_TLS
 int test_dtls(void);
+int test_dtls_1_2(void);
 int test_dtls_srtp(void);
 int test_tls(void);
 int test_tls_selfsigned(void);
@@ -198,6 +215,18 @@ int test_tls_certificate(void);
 
 #ifdef USE_TLS
 int test_dtls_turn(void);
+#endif
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* special test */
+int test_cplusplus(void);
+
+#ifdef __cplusplus
+}
 #endif
 
 
@@ -218,6 +247,12 @@ void test_hexdump_dual(FILE *f,
 		       const void *ep, size_t elen,
 		       const void *ap, size_t alen);
 int re_main_timeout(uint32_t timeout_ms);
+int test_load_file(struct mbuf *mb, const char *filename);
+int test_write_file(struct mbuf *mb, const char *filename);
+
+
+/* util */
+bool odict_compare(const struct odict *dict1, const struct odict *dict2);
 
 
 /*
@@ -316,3 +351,20 @@ struct tcp_server {
 };
 
 int tcp_server_alloc(struct tcp_server **srvp, enum behavior behavior);
+
+
+/*
+ * SIP Server
+ */
+
+struct sip_server {
+	struct sip *sip;
+	struct sip_lsnr *lsnr;
+	bool terminate;
+
+	unsigned n_register_req;
+};
+
+int sip_server_alloc(struct sip_server **srvp);
+int sip_server_uri(struct sip_server *srv, char *uri, size_t sz,
+		   enum sip_transp tp);

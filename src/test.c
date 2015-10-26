@@ -3,6 +3,15 @@
  *
  * Copyright (C) 2010 Creytiv.com
  */
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -41,6 +50,7 @@ static const struct test tests[] = {
 	TEST(test_dsp),
 #ifdef USE_TLS
 	TEST(test_dtls),
+	TEST(test_dtls_1_2),
 	TEST(test_dtls_srtp),
 #endif
 	TEST(test_fir),
@@ -56,6 +66,7 @@ static const struct test tests[] = {
 	TEST(test_fmt_snprintf),
 	TEST(test_fmt_str),
 	TEST(test_fmt_str_error),
+	TEST(test_fmt_unicode),
 	TEST(test_g711_alaw),
 	TEST(test_g711_ulaw),
 	TEST(test_hash),
@@ -67,6 +78,11 @@ static const struct test tests[] = {
 	TEST(test_ice),
 	TEST(test_ice_lite),
 	TEST(test_jbuf),
+	TEST(test_json),
+	TEST(test_json_file),
+	TEST(test_json_unicode),
+	TEST(test_json_bad),
+	TEST(test_json_array),
 	TEST(test_list),
 	TEST(test_list_ref),
 	TEST(test_mbuf),
@@ -75,6 +91,8 @@ static const struct test tests[] = {
 	TEST(test_mem_reallocarray),
 	TEST(test_mqueue),
 	TEST(test_natbd),
+	TEST(test_odict),
+	TEST(test_odict_array),
 	TEST(test_remain),
 	TEST(test_rtp),
 	TEST(test_rtcp_encode),
@@ -96,6 +114,8 @@ static const struct test tests[] = {
 	TEST(test_sip_param),
 	TEST(test_sip_parse),
 	TEST(test_sip_via),
+	TEST(test_sipevent),
+	TEST(test_sipreg),
 	TEST(test_sipsess),
 	TEST(test_srtp),
 	TEST(test_stun_req),
@@ -125,6 +145,9 @@ static const struct test tests[] = {
 	TEST(test_vid),
 	TEST(test_vidconv),
 	TEST(test_websock),
+
+	/* special test */
+	TEST(test_cplusplus),
 
 #ifdef USE_TLS
 	/* combination tests: */
@@ -191,6 +214,10 @@ static int testcase_oom(const struct test *test, int levels, bool verbose)
 			/* test timed out, stop now */
 			err = 0;
 			goto out;
+		}
+		else if (err == ESKIPPED) {
+			err = 0;
+			break;
 		}
 		else {
 			DEBUG_WARNING("oom: %s: unexpected error code at"
@@ -266,6 +293,8 @@ static int test_unit(const char *name, bool verbose)
 		}
 	}
 	else {
+		unsigned n_skipped = 0;
+
 		for (i=0; i<ARRAY_SIZE(tests); i++) {
 
 			if (verbose) {
@@ -275,11 +304,20 @@ static int test_unit(const char *name, bool verbose)
 
 			err = tests[i].exec();
 			if (err) {
+				if (err == ESKIPPED) {
+					++n_skipped;
+					err = 0;
+					continue;
+				}
+
 				DEBUG_WARNING("%s: test failed (%m)\n",
 					      tests[i].name, err);
 				return err;
 			}
 		}
+
+		if (n_skipped)
+			re_printf("skipped:%u\n", n_skipped);
 	}
 
 	return err;
@@ -493,7 +531,13 @@ static void *thread_handler(void *arg)
 
 	err = thr->test->exec();
 	if (err) {
-		DEBUG_WARNING("%s: test failed (%m)\n", thr->test->name, err);
+		if (err == ESKIPPED) {
+			err = 0;
+		}
+		else {
+			DEBUG_WARNING("%s: test failed (%m)\n",
+					thr->test->name, err);
+		}
 	}
 
 	re_thread_close();
@@ -676,5 +720,67 @@ int re_main_timeout(uint32_t timeout_ms)
 	(void)re_main(signal_handler);
 
 	tmr_cancel(&tmr);
+	return err;
+}
+
+
+int test_load_file(struct mbuf *mb, const char *filename)
+{
+	int err = 0, fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		return errno;
+
+	for (;;) {
+		uint8_t buf[1024];
+
+		const ssize_t n = read(fd, (void *)buf, sizeof(buf));
+		if (n < 0) {
+			err = errno;
+			break;
+		}
+		else if (n == 0)
+			break;
+
+		err = mbuf_write_mem(mb, buf, n);
+		if (err)
+			break;
+	}
+
+	(void)close(fd);
+
+	return err;
+}
+
+
+int test_write_file(struct mbuf *mb, const char *filename)
+{
+	int err = 0, fd = open(filename, O_CREAT | O_WRONLY, 0644);
+	if (fd < 0)
+		return errno;
+
+	for (;;) {
+		uint8_t buf[1024];
+		ssize_t n;
+
+		n = min(sizeof(buf), mbuf_get_left(mb));
+		if (n == 0)
+			break;
+
+		err = mbuf_read_mem(mb, buf, n);
+		if (err)
+			break;
+
+		n = write(fd, (void *)buf, n);
+		if (n < 0) {
+			err = errno;
+			break;
+		}
+		else if (n == 0)
+			break;
+
+	}
+
+	(void)close(fd);
+
 	return err;
 }
