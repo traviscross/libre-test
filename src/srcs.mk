@@ -32,6 +32,7 @@ SRCS	+= natbd.c
 SRCS	+= odict.c
 SRCS	+= remain.c
 SRCS	+= rtp.c
+SRCS	+= rtcp.c
 SRCS	+= sa.c
 SRCS	+= sdp.c
 SRCS	+= sha.c
@@ -60,8 +61,6 @@ SRCS	+= dtls.c
 SRCS	+= combo/dtls_turn.c
 SRCS	+= cert.c
 endif
-
-SRCS	+= cplusplus.cpp
 
 SRCS	+= util.c
 

@@ -5,7 +5,7 @@
 #
 
 PROJECT	  := retest
-VERSION   := 0.4.3
+VERSION   := 0.4.4
 
 LIBRE_MK  := $(shell [ -f ../re/mk/re.mk ] && \
 	echo "../re/mk/re.mk")
@@ -63,14 +63,9 @@ all: $(BIN)
 
 -include $(OBJS:.o=.d)
 
-# GPROF requires static linking
 $(BIN): $(OBJS)
 	@echo "  LD      $@"
-ifneq ($(GPROF),)
-	@$(LD) $(LFLAGS) $^ ../re/libre.a $(LIBS) -o $@
-else
-	@$(CXX) $(LFLAGS) $^ -L$(LIBRE_SO) -lre $(LIBS) -o $@
-endif
+	@$(CC) $(LFLAGS) $^ -L$(LIBRE_SO) -lre $(LIBS) -o $@
 
 $(BUILD)/%.o: %.c $(BUILD) Makefile src/srcs.mk
 	@echo "  CC      $@"

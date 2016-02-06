@@ -71,6 +71,7 @@ static const struct test tests[] = {
 	TEST(test_g711_ulaw),
 	TEST(test_hash),
 	TEST(test_hmac_sha1),
+	TEST(test_hmac_sha256),
 	TEST(test_http),
 	TEST(test_http_loop),
 	TEST(test_httpauth_chall),
@@ -98,6 +99,7 @@ static const struct test tests[] = {
 	TEST(test_rtcp_encode),
 	TEST(test_rtcp_encode_afb),
 	TEST(test_rtcp_decode),
+	TEST(test_rtcp_packetloss),
 	TEST(test_sa_class),
 	TEST(test_sa_cmp),
 	TEST(test_sa_decode),
@@ -142,12 +144,10 @@ static const struct test tests[] = {
 	TEST(test_uri_headers),
 	TEST(test_uri_user),
 	TEST(test_uri_params_headers),
+	TEST(test_uri_escape),
 	TEST(test_vid),
 	TEST(test_vidconv),
 	TEST(test_websock),
-
-	/* special test */
-	TEST(test_cplusplus),
 
 #ifdef USE_TLS
 	/* combination tests: */
@@ -317,7 +317,7 @@ static int test_unit(const char *name, bool verbose)
 		}
 
 		if (n_skipped)
-			re_printf("skipped:%u\n", n_skipped);
+			re_fprintf(stderr, "skipped:%u\n", n_skipped);
 	}
 
 	return err;

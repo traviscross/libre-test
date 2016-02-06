@@ -134,6 +134,7 @@ int test_g711_alaw(void);
 int test_g711_ulaw(void);
 int test_hash(void);
 int test_hmac_sha1(void);
+int test_hmac_sha256(void);
 int test_http(void);
 int test_http_loop(void);
 int test_httpauth_chall(void);
@@ -161,6 +162,7 @@ int test_rtp(void);
 int test_rtcp_encode(void);
 int test_rtcp_encode_afb(void);
 int test_rtcp_decode(void);
+int test_rtcp_packetloss(void);
 int test_sa_class(void);
 int test_sa_cmp(void);
 int test_sa_decode(void);
@@ -201,6 +203,7 @@ int test_uri_encode(void);
 int test_uri_headers(void);
 int test_uri_user(void);
 int test_uri_params_headers(void);
+int test_uri_escape(void);
 int test_vid(void);
 int test_vidconv(void);
 int test_websock(void);
@@ -215,18 +218,6 @@ int test_tls_certificate(void);
 
 #ifdef USE_TLS
 int test_dtls_turn(void);
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* special test */
-int test_cplusplus(void);
-
-#ifdef __cplusplus
-}
 #endif
 
 
